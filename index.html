@@ -29,6 +29,9 @@
       top: 20px;
       right: 20px;
       width: 260px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      padding-bottom: 20px;
     }
 
     .monthly-focus-panel {
@@ -329,6 +332,140 @@
 
     .context-menu-item.delete:hover {
       background: rgba(245, 87, 108, 0.2);
+    }
+
+    /* Edit Modal */
+    .edit-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1001;
+    }
+
+    .edit-modal.show {
+      display: flex;
+    }
+
+    .edit-modal-content {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 20px;
+      min-width: 300px;
+      max-width: 400px;
+    }
+
+    .edit-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .edit-modal-close {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.5);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .edit-modal-body {
+      margin-bottom: 15px;
+    }
+
+    .edit-modal-body input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: white;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .edit-modal-body input[type="text"]:focus {
+      border-color: rgba(102, 126, 234, 0.5);
+    }
+
+    .edit-modal-xp {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.9rem;
+    }
+
+    .edit-modal-xp input {
+      width: 80px;
+      padding: 8px;
+      border-radius: 8px;
+      border: 2px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: white;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .edit-modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .edit-modal-save {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .edit-modal-delete {
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: 1px solid rgba(245, 87, 108, 0.5);
+      background: transparent;
+      color: #f5576c;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .edit-modal-delete:hover {
+      background: rgba(245, 87, 108, 0.2);
+    }
+
+    /* Reset Levels Button */
+    .reset-levels-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(245, 87, 108, 0.3);
+      background: rgba(245, 87, 108, 0.1);
+      color: rgba(245, 87, 108, 0.7);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .reset-levels-btn:hover {
+      background: rgba(245, 87, 108, 0.2);
+      color: #f5576c;
+      border-color: rgba(245, 87, 108, 0.5);
     }
 
     .add-goal-form {
@@ -964,27 +1101,6 @@
       font-weight: 600;
     }
 
-    .big-goal-delete {
-      width: 24px;
-      height: 24px;
-      border-radius: 6px;
-      border: none;
-      background: transparent;
-      color: rgba(255,255,255,0.3);
-      font-size: 1.2rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      flex-shrink: 0;
-    }
-
-    .big-goal-delete:hover {
-      background: rgba(245, 87, 108, 0.2);
-      color: #f5576c;
-    }
-
     .big-goal-empty {
       color: rgba(255,255,255,0.3);
       font-size: 0.9rem;
@@ -1165,10 +1281,37 @@
 
   <div class="celebration" id="celebration"></div>
   <div class="context-menu" id="context-menu">
+    <div class="context-menu-item" id="context-menu-edit">
+      <span>✏️</span> Edit
+    </div>
     <div class="context-menu-item delete" id="context-menu-delete">
       <span>🗑️</span> Delete
     </div>
   </div>
+
+  <!-- Edit Modal -->
+  <div class="edit-modal" id="edit-modal">
+    <div class="edit-modal-content">
+      <div class="edit-modal-header">
+        <span id="edit-modal-title">Edit Item</span>
+        <button class="edit-modal-close" onclick="closeEditModal()">✕</button>
+      </div>
+      <div class="edit-modal-body">
+        <input type="text" id="edit-modal-input" placeholder="Enter new value">
+        <div class="edit-modal-xp" id="edit-modal-xp-section" style="display: none;">
+          <label>XP:</label>
+          <input type="number" id="edit-modal-xp" min="1" value="100">
+        </div>
+      </div>
+      <div class="edit-modal-actions">
+        <button class="edit-modal-save" onclick="saveEdit()">Save</button>
+        <button class="edit-modal-delete" onclick="deleteFromModal()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Levels Button -->
+  <button class="reset-levels-btn" onclick="confirmResetLevels()">Reset Levels</button>
   <div class="undo-toast" id="undo-toast">
     <span class="undo-toast-text" id="undo-toast-text">Action undone</span>
     <span class="undo-toast-hint">⌘Z undo · ⌘⇧Z redo</span>
@@ -1479,7 +1622,7 @@
 
       // Position menu, keeping it on screen
       const menuWidth = 140;
-      const menuHeight = 40;
+      const menuHeight = 80;
       const maxX = window.innerWidth - menuWidth - 10;
       const maxY = window.innerHeight - menuHeight - 10;
 
@@ -1494,6 +1637,163 @@
       contextMenuTarget = null;
       contextMenuType = null;
     }
+
+    // Edit Modal Functions
+    let editModalTarget = null;
+    let editModalType = null;
+
+    function openEditModal(type, id) {
+      const modal = document.getElementById('edit-modal');
+      const titleEl = document.getElementById('edit-modal-title');
+      const inputEl = document.getElementById('edit-modal-input');
+      const xpSection = document.getElementById('edit-modal-xp-section');
+      const xpEl = document.getElementById('edit-modal-xp');
+
+      editModalTarget = id;
+      editModalType = type;
+
+      const data = loadData();
+      let item = null;
+
+      if (type === 'goal') {
+        item = data.goals.find(g => g.id === id);
+        titleEl.textContent = 'Edit Habit';
+        inputEl.value = item ? item.name : '';
+        xpSection.style.display = 'flex';
+        xpEl.value = item ? item.xp : 20;
+      } else if (type === 'reward') {
+        item = data.rewards.find(r => r.id === id);
+        titleEl.textContent = 'Edit Reward';
+        inputEl.value = item ? item.name : '';
+        xpSection.style.display = 'flex';
+        document.querySelector('.edit-modal-xp label').textContent = 'Level:';
+        xpEl.value = item ? item.level : 5;
+      } else if (type === 'biggoal') {
+        const month = getCurrentMonth();
+        const goals = data.bigGoals?.[month] || [];
+        item = goals.find(g => g.id === id);
+        titleEl.textContent = 'Edit Monthly Goal';
+        inputEl.value = item ? item.text : '';
+        xpSection.style.display = 'flex';
+        document.querySelector('.edit-modal-xp label').textContent = 'XP:';
+        xpEl.value = item ? item.xp : 100;
+      }
+
+      modal.classList.add('show');
+      inputEl.focus();
+    }
+
+    function closeEditModal() {
+      const modal = document.getElementById('edit-modal');
+      modal.classList.remove('show');
+      editModalTarget = null;
+      editModalType = null;
+      // Reset label
+      document.querySelector('.edit-modal-xp label').textContent = 'XP:';
+    }
+
+    function saveEdit() {
+      const inputEl = document.getElementById('edit-modal-input');
+      const xpEl = document.getElementById('edit-modal-xp');
+      const newValue = inputEl.value.trim();
+
+      if (!newValue || !editModalTarget || !editModalType) {
+        closeEditModal();
+        return;
+      }
+
+      pushUndo('Edit item');
+      const data = loadData();
+
+      if (editModalType === 'goal') {
+        const goal = data.goals.find(g => g.id === editModalTarget);
+        if (goal) {
+          goal.name = newValue;
+          goal.xp = parseInt(xpEl.value) || 20;
+        }
+      } else if (editModalType === 'reward') {
+        const reward = data.rewards.find(r => r.id === editModalTarget);
+        if (reward) {
+          reward.name = newValue;
+          reward.level = parseInt(xpEl.value) || 5;
+        }
+      } else if (editModalType === 'biggoal') {
+        const month = getCurrentMonth();
+        if (data.bigGoals?.[month]) {
+          const goal = data.bigGoals[month].find(g => g.id === editModalTarget);
+          if (goal) {
+            goal.text = newValue;
+            goal.xp = parseInt(xpEl.value) || 100;
+          }
+        }
+      }
+
+      saveData(data);
+      playSound('complete');
+      render();
+      closeEditModal();
+    }
+
+    function deleteFromModal() {
+      if (!editModalTarget || !editModalType) {
+        closeEditModal();
+        return;
+      }
+
+      // Use the existing delete logic
+      if (editModalType === 'goal') {
+        pushUndo('Delete habit');
+        const data = loadData();
+        data.goals = data.goals.filter(g => g.id !== editModalTarget);
+        Object.keys(data.days).forEach(day => {
+          delete data.days[day][editModalTarget];
+        });
+        saveData(data);
+      } else if (editModalType === 'reward') {
+        pushUndo('Delete reward');
+        const data = loadData();
+        data.rewards = data.rewards.filter(r => r.id !== editModalTarget);
+        saveData(data);
+      } else if (editModalType === 'biggoal') {
+        deleteBigGoal(editModalTarget);
+      }
+
+      playSound('uncomplete');
+      render();
+      closeEditModal();
+    }
+
+    // Reset Levels function
+    function confirmResetLevels() {
+      if (confirm('Are you sure you want to reset all levels? This will reset your XP, level, streak, and all progress.')) {
+        pushUndo('Reset levels');
+        const data = loadData();
+        data.xp = 0;
+        data.level = 1;
+        data.streak = 0;
+        data.totalComplete = 0;
+        data.days = {};
+        // Also reset monthly goals completion
+        if (data.bigGoals) {
+          Object.keys(data.bigGoals).forEach(month => {
+            if (Array.isArray(data.bigGoals[month])) {
+              data.bigGoals[month].forEach(g => g.completed = false);
+            }
+          });
+        }
+        saveData(data);
+        playSound('uncomplete');
+        render();
+      }
+    }
+
+    // Handle edit from context menu
+    document.getElementById('context-menu-edit').addEventListener('click', function() {
+      if (contextMenuTarget && contextMenuType) {
+        openEditModal(contextMenuType, contextMenuTarget);
+      }
+      hideContextMenu();
+    });
 
     // Handle delete from context menu
     document.getElementById('context-menu-delete').addEventListener('click', function() {
@@ -1514,6 +1814,9 @@
           data.rewards = data.rewards.filter(r => r.id !== contextMenuTarget);
           saveData(data);
           playSound('uncomplete');
+          render();
+        } else if (contextMenuType === 'biggoal') {
+          deleteBigGoal(contextMenuTarget);
           render();
         }
       }
@@ -2534,7 +2837,7 @@
         html += '<div class="big-goals-list">';
         goals.forEach(goal => {
           html += `
-            <div class="big-goal-item ${goal.completed ? 'completed' : ''}" data-id="${goal.id}">
+            <div class="big-goal-item ${goal.completed ? 'completed' : ''}" data-type="biggoal" data-id="${goal.id}">
               <div class="big-goal-check" onclick="toggleBigGoal('${goal.id}')">
                 ${goal.completed ? '✓' : ''}
               </div>
@@ -2542,7 +2845,6 @@
                 <div class="big-goal-item-text">${goal.text}</div>
                 <div class="big-goal-item-xp">+${goal.xp} XP</div>
               </div>
-              <button class="big-goal-delete" onclick="deleteBigGoal('${goal.id}')">×</button>
             </div>
           `;
         });
@@ -2632,10 +2934,11 @@
       btn.style.display = e.target.value.trim() ? 'block' : 'none';
     });
 
-    // Right-click handler for goals and rewards
+    // Right-click handler for goals, rewards, and big goals
     document.addEventListener('contextmenu', function(e) {
       const goalCard = e.target.closest('.goal-card');
       const rewardItem = e.target.closest('.reward-item');
+      const bigGoalItem = e.target.closest('.big-goal-item');
 
       if (goalCard) {
         e.preventDefault();
@@ -2643,20 +2946,26 @@
       } else if (rewardItem) {
         e.preventDefault();
         showContextMenu(e.clientX, e.clientY, 'reward', rewardItem.dataset.id);
+      } else if (bigGoalItem) {
+        e.preventDefault();
+        showContextMenu(e.clientX, e.clientY, 'biggoal', bigGoalItem.dataset.id);
       }
     });
 
-    // Long-press handler for goals and rewards (mobile + desktop)
+    // Long-press handler for goals, rewards, and big goals (mobile + desktop)
     document.addEventListener('mousedown', function(e) {
       const goalCard = e.target.closest('.goal-card');
       const rewardItem = e.target.closest('.reward-item');
+      const bigGoalItem = e.target.closest('.big-goal-item');
 
-      if (goalCard || rewardItem) {
+      if (goalCard || rewardItem || bigGoalItem) {
         longPressTimer = setTimeout(() => {
           if (goalCard) {
             showContextMenu(e.clientX, e.clientY, 'goal', goalCard.dataset.id);
           } else if (rewardItem) {
             showContextMenu(e.clientX, e.clientY, 'reward', rewardItem.dataset.id);
+          } else if (bigGoalItem) {
+            showContextMenu(e.clientX, e.clientY, 'biggoal', bigGoalItem.dataset.id);
           }
         }, LONG_PRESS_DURATION);
       }
@@ -2680,14 +2989,17 @@
     document.addEventListener('touchstart', function(e) {
       const goalCard = e.target.closest('.goal-card');
       const rewardItem = e.target.closest('.reward-item');
+      const bigGoalItem = e.target.closest('.big-goal-item');
 
-      if (goalCard || rewardItem) {
+      if (goalCard || rewardItem || bigGoalItem) {
         const touch = e.touches[0];
         longPressTimer = setTimeout(() => {
           if (goalCard) {
             showContextMenu(touch.clientX, touch.clientY, 'goal', goalCard.dataset.id);
           } else if (rewardItem) {
             showContextMenu(touch.clientX, touch.clientY, 'reward', rewardItem.dataset.id);
+          } else if (bigGoalItem) {
+            showContextMenu(touch.clientX, touch.clientY, 'biggoal', bigGoalItem.dataset.id);
           }
         }, LONG_PRESS_DURATION);
       }
