@@ -1606,6 +1606,9 @@
         return;
       }
 
+      // Existing user - make sure they have a name set
+      await ensureUserName();
+
       // Load from cloud and update local
       console.log('Loading from cloud, bin:', JSONBIN_BIN_ID);
       const cloudData = await loadFromCloud();
@@ -2298,9 +2301,10 @@
 
     // Initialize
     render();
-    initCloudSync(); // Sync with JSONBin
-    ensureUserName(); // Ask for name if not set (also updates bin name for existing users)
-    checkMobileFirstTime(); // Show sync modal on mobile if needed
+    // initCloudSync already calls ensureUserName via createBin, so we don't call it separately
+    initCloudSync().then(() => {
+      checkMobileFirstTime(); // Show sync modal on mobile if needed
+    });
   </script>
 </body>
 </html>
