@@ -1697,22 +1697,22 @@
         // First time: create bin with current data
         console.log('No bin ID, creating new bin...');
         await createBin(loadData());
-        return;
+        // Don't return - continue to update leaderboard below
+      } else {
+        // Existing user - make sure they have a name set
+        await ensureUserName();
+
+        // Load from cloud and update local
+        console.log('Loading from cloud, bin:', JSONBIN_BIN_ID);
+        const cloudData = await loadFromCloud();
+        if (cloudData) {
+          localStorage.setItem('lifequest', JSON.stringify(cloudData));
+          console.log('Updated localStorage from cloud');
+          render();
+        }
       }
 
-      // Existing user - make sure they have a name set
-      await ensureUserName();
-
-      // Load from cloud and update local
-      console.log('Loading from cloud, bin:', JSONBIN_BIN_ID);
-      const cloudData = await loadFromCloud();
-      if (cloudData) {
-        localStorage.setItem('lifequest', JSON.stringify(cloudData));
-        console.log('Updated localStorage from cloud');
-        render();
-      }
-
-      // Update leaderboard with current user's stats
+      // Update leaderboard with current user's stats (for ALL users, new and existing)
       await updateLeaderboard();
 
       // Load and display leaderboard
