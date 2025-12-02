@@ -997,7 +997,7 @@
 
       <div class="add-goal-form">
         <input type="text" id="new-goal-input" placeholder="Goal name (or: Gym 3x/week)" maxlength="40">
-        <button onclick="addGoal()">Add</button>
+        <button id="add-goal-btn" onclick="addGoal()" style="display: none;">Add</button>
       </div>
 
       <div class="week-view" id="week-view"></div>
@@ -1051,7 +1051,7 @@
         <div class="rewards-list" id="rewards-list"></div>
         <div class="add-reward-form">
           <input type="text" id="new-reward-input" placeholder="Reward @Level (e.g. Chess @5)" maxlength="50">
-          <button onclick="addReward()">Add</button>
+          <button id="add-reward-btn" onclick="addReward()" style="display: none;">Add</button>
         </div>
       </div>
 
@@ -1943,6 +1943,7 @@
 
       saveData(data);
       input.value = '';
+      document.getElementById('add-goal-btn').style.display = 'none';
       playSound('complete');
       render();
     }
@@ -1975,6 +1976,7 @@
 
       saveData(data);
       input.value = '';
+      document.getElementById('add-reward-btn').style.display = 'none';
       playSound('complete');
       render();
     }
@@ -2411,11 +2413,23 @@
       }
     });
 
+    // Show/hide Add button based on input
+    document.getElementById('new-goal-input').addEventListener('input', function(e) {
+      const btn = document.getElementById('add-goal-btn');
+      btn.style.display = e.target.value.trim() ? 'block' : 'none';
+    });
+
     // Enter key to add reward
     document.getElementById('new-reward-input').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         addReward();
       }
+    });
+
+    // Show/hide Add button based on input
+    document.getElementById('new-reward-input').addEventListener('input', function(e) {
+      const btn = document.getElementById('add-reward-btn');
+      btn.style.display = e.target.value.trim() ? 'block' : 'none';
     });
 
     // Right-click handler for goals and rewards
