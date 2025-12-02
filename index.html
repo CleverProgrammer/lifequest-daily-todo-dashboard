@@ -894,6 +894,105 @@
       background: rgba(67, 233, 123, 0.2);
     }
 
+    /* Multiple Monthly Goals List */
+    .big-goals-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .big-goal-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: all 0.2s ease;
+    }
+
+    .big-goal-item:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .big-goal-item.completed {
+      border-color: rgba(67, 233, 123, 0.3);
+      background: rgba(67, 233, 123, 0.1);
+    }
+
+    .big-goal-check {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: white;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .big-goal-item.completed .big-goal-check {
+      background: #43e97b;
+      border-color: #43e97b;
+    }
+
+    .big-goal-item-info {
+      flex: 1;
+      cursor: pointer;
+    }
+
+    .big-goal-item-text {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.9);
+    }
+
+    .big-goal-item.completed .big-goal-item-text {
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+
+    .big-goal-item-xp {
+      font-size: 0.75rem;
+      color: #43e97b;
+      font-weight: 600;
+    }
+
+    .big-goal-delete {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.3);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .big-goal-delete:hover {
+      background: rgba(245, 87, 108, 0.2);
+      color: #f5576c;
+    }
+
+    .big-goal-empty {
+      color: rgba(255,255,255,0.3);
+      font-size: 0.9rem;
+      font-style: italic;
+      text-align: center;
+      padding: 10px 0;
+    }
+
     .celebration {
       position: fixed;
       top: 50%;
@@ -1996,58 +2095,101 @@
 
     function setBigGoal() {
       const input = document.getElementById('big-goal-input');
-      const text = input.value.trim();
+      let text = input.value.trim();
       if (!text) return;
 
-      pushUndo('Set monthly goal');
+      pushUndo('Add monthly goal');
       const data = loadData();
       const month = getCurrentMonth();
 
+      // Parse XP from text: "Goal name 50xp" or "Goal name +50"
+      let xp = 100; // default XP
+      const xpMatch = text.match(/\s+(\+)?(\d+)\s*(xp)?$/i);
+      if (xpMatch) {
+        xp = parseInt(xpMatch[2]);
+        text = text.replace(xpMatch[0], '').trim();
+      }
+
       if (!data.bigGoals) data.bigGoals = {};
-      data.bigGoals[month] = { text, completed: false };
+      if (!data.bigGoals[month]) data.bigGoals[month] = [];
+
+      // Convert old format (single object) to new format (array)
+      if (!Array.isArray(data.bigGoals[month])) {
+        const oldGoal = data.bigGoals[month];
+        data.bigGoals[month] = [{
+          id: 'goal_' + Date.now(),
+          text: oldGoal.text,
+          xp: 100,
+          completed: oldGoal.completed
+        }];
+      }
+
+      const id = slugify(text) + '_' + Date.now();
+      data.bigGoals[month].push({ id, text, xp, completed: false });
 
       saveData(data);
       input.value = '';
+      document.getElementById('add-big-goal-btn')?.style.setProperty('display', 'none');
       playSound('complete');
       render();
     }
 
-    function toggleBigGoal() {
+    function toggleBigGoal(goalId) {
       pushUndo('Toggle monthly goal');
       const data = loadData();
       const month = getCurrentMonth();
 
-      if (data.bigGoals && data.bigGoals[month]) {
-        data.bigGoals[month].completed = !data.bigGoals[month].completed;
-        if (data.bigGoals[month].completed) {
-          playSound('allcomplete');
-          showCelebration('🎉');
-          data.xp += 100; // Bonus XP for completing big goal
-          while (data.xp >= data.level * XP_PER_LEVEL) {
-            data.xp -= data.level * XP_PER_LEVEL;
-            data.level++;
-            playSound('levelup');
-          }
-        } else {
-          playSound('uncomplete');
-          data.xp = Math.max(0, data.xp - 100);
-        }
-        saveData(data);
-        render();
+      if (!data.bigGoals || !data.bigGoals[month]) return;
+
+      // Convert old format if needed
+      if (!Array.isArray(data.bigGoals[month])) {
+        const oldGoal = data.bigGoals[month];
+        data.bigGoals[month] = [{
+          id: 'goal_' + Date.now(),
+          text: oldGoal.text,
+          xp: 100,
+          completed: oldGoal.completed
+        }];
       }
+
+      const goal = data.bigGoals[month].find(g => g.id === goalId);
+      if (!goal) return;
+
+      goal.completed = !goal.completed;
+      if (goal.completed) {
+        playSound('allcomplete');
+        showCelebration('🎉');
+        data.xp += goal.xp;
+        while (data.xp >= data.level * XP_PER_LEVEL) {
+          data.xp -= data.level * XP_PER_LEVEL;
+          data.level++;
+          playSound('levelup');
+        }
+      } else {
+        playSound('uncomplete');
+        data.xp = Math.max(0, data.xp - goal.xp);
+      }
+      saveData(data);
+      render();
     }
 
-    function clearBigGoal() {
-      pushUndo('Clear monthly goal');
+    function deleteBigGoal(goalId) {
+      pushUndo('Delete monthly goal');
       const data = loadData();
       const month = getCurrentMonth();
 
-      if (data.bigGoals && data.bigGoals[month]) {
-        delete data.bigGoals[month];
-        saveData(data);
-        playSound('uncomplete');
-        render();
+      if (!data.bigGoals || !data.bigGoals[month]) return;
+
+      const goal = data.bigGoals[month].find(g => g.id === goalId);
+      if (goal && goal.completed) {
+        // Remove XP if goal was completed
+        data.xp = Math.max(0, data.xp - goal.xp);
       }
+
+      data.bigGoals[month] = data.bigGoals[month].filter(g => g.id !== goalId);
+      saveData(data);
+      playSound('uncomplete');
+      render();
     }
 
     function toggleGoal(goalId) {
@@ -2340,40 +2482,72 @@
       const monthLabel = document.getElementById('big-goal-month');
       const data = loadData();
       const month = getCurrentMonth();
-      const bigGoal = data.bigGoals ? data.bigGoals[month] : null;
+      let goals = data.bigGoals ? data.bigGoals[month] : null;
 
       monthLabel.textContent = getMonthName(month);
 
-      if (bigGoal) {
-        container.innerHTML = `
-          <div class="big-goal-display">
-            <div class="big-goal-text ${bigGoal.completed ? 'completed' : ''}" onclick="toggleBigGoal()">${bigGoal.text}</div>
-            <div class="big-goal-actions">
-              <button class="big-goal-btn complete" onclick="toggleBigGoal()">${bigGoal.completed ? 'Mark Incomplete' : 'Mark Complete'}</button>
-              <button class="big-goal-btn" onclick="clearBigGoal()">Clear</button>
-            </div>
-          </div>
-        `;
-      } else {
-        container.innerHTML = `
-          <div class="big-goal-display">
-            <div class="big-goal-empty">Set your big focus for this month</div>
-          </div>
-          <div class="big-goal-form">
-            <input type="text" id="big-goal-input" placeholder="e.g. Get to $600k this month" maxlength="60">
-            <button onclick="setBigGoal()">Set Goal</button>
-          </div>
-        `;
-        // Add enter key listener for the dynamically created input
-        setTimeout(() => {
-          const input = document.getElementById('big-goal-input');
-          if (input) {
-            input.addEventListener('keypress', function(e) {
-              if (e.key === 'Enter') setBigGoal();
-            });
-          }
-        }, 0);
+      // Convert old format if needed
+      if (goals && !Array.isArray(goals)) {
+        goals = [{
+          id: 'goal_' + Date.now(),
+          text: goals.text,
+          xp: 100,
+          completed: goals.completed
+        }];
       }
+
+      // Sort goals by XP descending
+      if (goals && goals.length > 0) {
+        goals = [...goals].sort((a, b) => b.xp - a.xp);
+      }
+
+      let html = '';
+
+      // Show existing goals
+      if (goals && goals.length > 0) {
+        html += '<div class="big-goals-list">';
+        goals.forEach(goal => {
+          html += `
+            <div class="big-goal-item ${goal.completed ? 'completed' : ''}" data-id="${goal.id}">
+              <div class="big-goal-check" onclick="toggleBigGoal('${goal.id}')">
+                ${goal.completed ? '✓' : ''}
+              </div>
+              <div class="big-goal-item-info" onclick="toggleBigGoal('${goal.id}')">
+                <div class="big-goal-item-text">${goal.text}</div>
+                <div class="big-goal-item-xp">+${goal.xp} XP</div>
+              </div>
+              <button class="big-goal-delete" onclick="deleteBigGoal('${goal.id}')">×</button>
+            </div>
+          `;
+        });
+        html += '</div>';
+      } else {
+        html += '<div class="big-goal-empty">Add your monthly goals</div>';
+      }
+
+      // Always show the add form
+      html += `
+        <div class="big-goal-form">
+          <input type="text" id="big-goal-input" placeholder="Goal name +XP (e.g. Ship feature +150)" maxlength="60">
+          <button id="add-big-goal-btn" onclick="setBigGoal()" style="display: none;">Add</button>
+        </div>
+      `;
+
+      container.innerHTML = html;
+
+      // Add event listeners for the dynamically created input
+      setTimeout(() => {
+        const input = document.getElementById('big-goal-input');
+        if (input) {
+          input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') setBigGoal();
+          });
+          input.addEventListener('input', function(e) {
+            const btn = document.getElementById('add-big-goal-btn');
+            if (btn) btn.style.display = e.target.value.trim() ? 'block' : 'none';
+          });
+        }
+      }, 0);
     }
 
     function render() {
