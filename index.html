@@ -1,0 +1,2306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Quest</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      color: #fff;
+      padding: 20px;
+    }
+
+    .app-layout {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .main-panel {
+      width: 100%;
+    }
+
+    .side-panel {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 260px;
+    }
+
+    .monthly-focus-panel {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 340px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 300;
+      letter-spacing: 2px;
+      margin-bottom: 5px;
+    }
+
+    .selected-date {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .selected-date .date-nav {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6);
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .selected-date .date-nav:hover {
+      border-color: rgba(255,255,255,0.4);
+      color: white;
+    }
+
+    .selected-date .today-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6);
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      transition: all 0.2s ease;
+    }
+
+    .selected-date .today-btn:hover {
+      border-color: rgba(255,255,255,0.4);
+      color: white;
+    }
+
+    .selected-date.is-past .date-text {
+      color: #fa709a;
+    }
+
+    .level-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .xp-bar {
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      height: 8px;
+      margin-top: 15px;
+      overflow: hidden;
+    }
+
+    .xp-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #f093fb, #f5576c);
+      border-radius: 10px;
+      transition: width 0.5s ease;
+    }
+
+    .xp-text {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 5px;
+    }
+
+    .streak-display {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .streak-item {
+      text-align: center;
+    }
+
+    .streak-number {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #43e97b, #38f9d7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .streak-label {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .goals {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .goals-section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      padding-left: 5px;
+    }
+
+    .goals-section-label:first-child {
+      margin-top: 0;
+    }
+
+    .goal-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      position: relative;
+    }
+
+    .goal-card:hover {
+      background: rgba(255,255,255,0.08);
+      transform: translateY(-2px);
+    }
+
+    .goal-card.completed {
+      border-color: #43e97b;
+      background: rgba(67, 233, 123, 0.1);
+    }
+
+    .goal-icon {
+      width: 45px;
+      height: 45px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .goal-info {
+      flex: 1;
+    }
+
+    .goal-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 0.95rem;
+    }
+
+    .goal-streak {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .goal-progress {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 2px;
+    }
+
+    .goal-progress .progress-bar {
+      width: 60px;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      margin-top: 4px;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    .goal-progress .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4facfe, #00f2fe);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    .goal-progress .progress-fill.complete {
+      background: linear-gradient(90deg, #43e97b, #38f9d7);
+    }
+
+    .goal-progress .progress-text {
+      color: rgba(255,255,255,0.5);
+    }
+
+    .goal-progress .progress-text.complete {
+      color: #43e97b;
+    }
+
+    .goal-check {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .goal-card.completed .goal-check {
+      background: #43e97b;
+      border-color: #43e97b;
+    }
+
+    .goal-check svg {
+      width: 14px;
+      height: 14px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .goal-card.completed .goal-check svg {
+      opacity: 1;
+    }
+
+    /* Context Menu for Delete */
+    .context-menu {
+      position: fixed;
+      background: rgba(30, 30, 50, 0.95);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 6px 0;
+      min-width: 140px;
+      z-index: 1000;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      display: none;
+    }
+
+    .context-menu.show {
+      display: block;
+    }
+
+    .context-menu-item {
+      padding: 10px 16px;
+      color: rgba(255,255,255,0.8);
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.2s ease;
+    }
+
+    .context-menu-item:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .context-menu-item.delete {
+      color: #f5576c;
+    }
+
+    .context-menu-item.delete:hover {
+      background: rgba(245, 87, 108, 0.2);
+    }
+
+    .add-goal-form {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .add-goal-form input {
+      flex: 1;
+      padding: 12px 15px;
+      border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: white;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    .add-goal-form input:focus {
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    .add-goal-form input::placeholder {
+      color: rgba(255,255,255,0.3);
+    }
+
+    .add-goal-form button {
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #43e97b, #38f9d7);
+      color: #1a1a2e;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .add-goal-form button:hover {
+      transform: scale(1.05);
+    }
+
+    .week-view {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 16px;
+    }
+
+    .day {
+      text-align: center;
+    }
+
+    .day-name {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 8px;
+    }
+
+    .day-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      margin: 0 auto;
+    }
+
+    .day-dot.complete {
+      background: linear-gradient(135deg, #43e97b, #38f9d7);
+      box-shadow: 0 0 10px rgba(67, 233, 123, 0.5);
+    }
+
+    .day-dot.today {
+      border: 2px solid #f5576c;
+    }
+
+    .day-dot.partial {
+      background: linear-gradient(135deg, #fa709a, #fee140);
+    }
+
+    /* Monthly Calendar */
+    .calendar {
+      background: rgba(255,255,255,0.03);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .calendar-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .calendar-nav {
+      display: flex;
+      gap: 8px;
+    }
+
+    .calendar-nav button {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .calendar-nav button:hover {
+      border-color: rgba(255,255,255,0.4);
+      color: white;
+    }
+
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .calendar-weekday {
+      text-align: center;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.4);
+      padding: 4px;
+    }
+
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.02);
+      color: rgba(255,255,255,0.4);
+      position: relative;
+    }
+
+    .calendar-day.current-month {
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .calendar-day.current-month:hover {
+      background: rgba(255,255,255,0.1);
+      transform: scale(1.1);
+    }
+
+    .calendar-day.today {
+      border: 2px solid #f5576c;
+      color: white;
+    }
+
+    .calendar-day.selected {
+      box-shadow: 0 0 0 2px #667eea;
+    }
+
+    .calendar-day.complete {
+      background: linear-gradient(135deg, #43e97b, #38f9d7);
+      color: #1a1a2e;
+      font-weight: 600;
+    }
+
+    .calendar-day.partial {
+      background: linear-gradient(135deg, #fa709a, #fee140);
+      color: #1a1a2e;
+      font-weight: 600;
+    }
+
+    .calendar-legend {
+      display: flex;
+      gap: 15px;
+      margin-top: 15px;
+      justify-content: center;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    .legend-dot.complete {
+      background: linear-gradient(135deg, #43e97b, #38f9d7);
+    }
+
+    .legend-dot.partial {
+      background: linear-gradient(135deg, #fa709a, #fee140);
+    }
+
+    .reset-btn {
+      display: block;
+      margin: 15px auto 0;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.5);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .reset-btn:hover {
+      border-color: rgba(255,255,255,0.4);
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* Rewards Section */
+    .rewards-section {
+      margin-top: 20px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 16px;
+      padding: 15px;
+    }
+
+    .rewards-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rewards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .reward-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: all 0.3s ease;
+    }
+
+    .reward-item.unlocked {
+      background: rgba(67, 233, 123, 0.1);
+      border-color: rgba(67, 233, 123, 0.3);
+    }
+
+    .reward-item.locked {
+      opacity: 0.5;
+    }
+
+    .reward-icon {
+      font-size: 1.2rem;
+    }
+
+    .reward-info {
+      flex: 1;
+    }
+
+    .reward-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .reward-level {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .reward-status {
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .reward-status.unlocked {
+      background: linear-gradient(135deg, #43e97b, #38f9d7);
+      color: #1a1a2e;
+    }
+
+    .reward-status.locked {
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.5);
+    }
+
+    .add-reward-form {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .add-reward-form input {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: white;
+      font-size: 0.8rem;
+      outline: none;
+    }
+
+    .add-reward-form input::placeholder {
+      color: rgba(255,255,255,0.3);
+    }
+
+    .add-reward-form button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      color: white;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    /* Big Monthly Goal */
+    .big-goal-section {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+      border-radius: 20px;
+      padding: 20px;
+      border: 2px solid rgba(102, 126, 234, 0.3);
+    }
+
+    .big-goal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .big-goal-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .big-goal-month {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+      background: rgba(255,255,255,0.1);
+      padding: 4px 10px;
+      border-radius: 10px;
+    }
+
+    .big-goal-display {
+      text-align: center;
+      padding: 15px 0;
+    }
+
+    .big-goal-text {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #f093fb, #f5576c, #43e97b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .big-goal-text:hover {
+      transform: scale(1.02);
+    }
+
+    .big-goal-text.completed {
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+
+    .big-goal-empty {
+      color: rgba(255,255,255,0.3);
+      font-size: 1rem;
+      font-style: italic;
+    }
+
+    .big-goal-form {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .big-goal-form input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 2px solid rgba(102, 126, 234, 0.3);
+      background: rgba(255,255,255,0.05);
+      color: white;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    .big-goal-form input:focus {
+      border-color: rgba(102, 126, 234, 0.6);
+    }
+
+    .big-goal-form input::placeholder {
+      color: rgba(255,255,255,0.3);
+    }
+
+    .big-goal-form button {
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .big-goal-form button:hover {
+      transform: scale(1.05);
+    }
+
+    .big-goal-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .big-goal-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .big-goal-btn:hover {
+      border-color: rgba(255,255,255,0.4);
+      color: white;
+    }
+
+    .big-goal-btn.complete {
+      border-color: rgba(67, 233, 123, 0.5);
+      color: #43e97b;
+    }
+
+    .big-goal-btn.complete:hover {
+      background: rgba(67, 233, 123, 0.2);
+    }
+
+    .celebration {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-size: 4rem;
+      transition: transform 0.3s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .celebration.show {
+      transform: translate(-50%, -50%) scale(1);
+      animation: celebrate 0.6s ease forwards;
+    }
+
+    @keyframes celebrate {
+      0% { transform: translate(-50%, -50%) scale(0); }
+      50% { transform: translate(-50%, -50%) scale(1.2); }
+      100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+    }
+
+    @media (max-width: 1400px) {
+      .monthly-focus-panel {
+        position: static;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto 20px auto;
+      }
+
+      .side-panel {
+        position: static;
+        width: 100%;
+        max-width: 500px;
+        margin: 30px auto 0 auto;
+      }
+
+      .app-layout {
+        max-width: 500px;
+      }
+    }
+
+    /* Undo/Redo Toast */
+    .undo-toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(0,0,0,0.9);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 1000;
+      transition: transform 0.3s ease;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .undo-toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .undo-toast-text {
+      color: rgba(255,255,255,0.8);
+    }
+
+    .undo-toast-hint {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <div class="main-panel">
+      <header>
+        <h1>LIFE QUEST</h1>
+        <div class="selected-date" id="selected-date"></div>
+        <div class="level-badge">Level <span id="level">1</span></div>
+        <div class="xp-bar">
+          <div class="xp-fill" id="xp-fill" style="width: 0%"></div>
+        </div>
+        <div class="xp-text"><span id="xp">0</span> / <span id="xp-needed">100</span> XP</div>
+
+        <div class="streak-display">
+          <div class="streak-item">
+            <div class="streak-number" id="current-streak">0</div>
+            <div class="streak-label">Day Streak</div>
+          </div>
+          <div class="streak-item">
+            <div class="streak-number" id="total-complete">0</div>
+            <div class="streak-label">Total Days</div>
+          </div>
+        </div>
+      </header>
+
+      <div class="goals" id="goals"></div>
+
+      <div class="add-goal-form">
+        <input type="text" id="new-goal-input" placeholder="Goal name (or: Gym 3x/week)" maxlength="40">
+        <button onclick="addGoal()">Add</button>
+      </div>
+
+      <div class="week-view" id="week-view"></div>
+
+      <button class="reset-btn" onclick="resetDay()">Reset Day</button>
+    </div>
+
+    <div class="monthly-focus-panel">
+      <div class="big-goal-section">
+        <div class="big-goal-header">
+          <div class="big-goal-title">🎯 Monthly Focus</div>
+          <div class="big-goal-month" id="big-goal-month">December 2025</div>
+        </div>
+        <div id="big-goal-content"></div>
+      </div>
+    </div>
+
+    <div class="side-panel">
+      <div class="calendar">
+        <div class="calendar-header">
+          <span class="calendar-title" id="calendar-title">December 2025</span>
+          <div class="calendar-nav">
+            <button onclick="changeMonth(-1)">&#8249;</button>
+            <button onclick="changeMonth(1)">&#8250;</button>
+          </div>
+        </div>
+        <div class="calendar-weekdays">
+          <div class="calendar-weekday">S</div>
+          <div class="calendar-weekday">M</div>
+          <div class="calendar-weekday">T</div>
+          <div class="calendar-weekday">W</div>
+          <div class="calendar-weekday">T</div>
+          <div class="calendar-weekday">F</div>
+          <div class="calendar-weekday">S</div>
+        </div>
+        <div class="calendar-days" id="calendar-days"></div>
+        <div class="calendar-legend">
+          <div class="legend-item">
+            <div class="legend-dot complete"></div>
+            <span>All done</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot partial"></div>
+            <span>Partial</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rewards-section">
+        <div class="rewards-title">🏆 Rewards</div>
+        <div class="rewards-list" id="rewards-list"></div>
+        <div class="add-reward-form">
+          <input type="text" id="new-reward-input" placeholder="Reward @Level (e.g. Chess @5)" maxlength="50">
+          <button onclick="addReward()">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="celebration" id="celebration"></div>
+  <div class="context-menu" id="context-menu">
+    <div class="context-menu-item delete" id="context-menu-delete">
+      <span>🗑️</span> Delete
+    </div>
+  </div>
+  <div class="undo-toast" id="undo-toast">
+    <span class="undo-toast-text" id="undo-toast-text">Action undone</span>
+    <span class="undo-toast-hint">⌘Z undo · ⌘⇧Z redo</span>
+  </div>
+
+  <!-- Sync Modal (shows on mobile or when clicking sync button) -->
+  <div class="sync-modal" id="sync-modal">
+    <div class="sync-modal-content">
+      <div class="sync-modal-header">
+        <span>🔄 Sync Code</span>
+        <button class="sync-close" onclick="closeSyncModal()">✕</button>
+      </div>
+      <div class="sync-modal-body">
+        <div id="sync-code-display"></div>
+        <div class="sync-input-section">
+          <input type="text" id="sync-code-input" placeholder="Paste sync code from other device">
+          <button onclick="applySyncCode()">Link</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .sync-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(102, 126, 234, 0.8);
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .sync-btn:hover {
+      background: rgba(102, 126, 234, 1);
+    }
+    .sync-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .sync-modal.show {
+      display: flex;
+    }
+    .sync-modal-content {
+      background: #1a1a2e;
+      border-radius: 16px;
+      padding: 20px;
+      width: 90%;
+      max-width: 360px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .sync-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+    .sync-close {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.5);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    .sync-code-box {
+      background: rgba(255,255,255,0.05);
+      border: 2px dashed rgba(102, 126, 234, 0.5);
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .sync-code-label {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 8px;
+    }
+    .sync-code {
+      font-family: monospace;
+      font-size: 1.1rem;
+      color: #43e97b;
+      word-break: break-all;
+      user-select: all;
+    }
+    .sync-code-hint {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 8px;
+    }
+    .sync-input-section {
+      display: flex;
+      gap: 8px;
+    }
+    .sync-input-section input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: white;
+      font-size: 0.85rem;
+    }
+    .sync-input-section input::placeholder {
+      color: rgba(255,255,255,0.3);
+    }
+    .sync-input-section button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .sync-status {
+      font-size: 0.75rem;
+      color: #43e97b;
+      margin-top: 10px;
+      text-align: center;
+    }
+  </style>
+
+  <button class="sync-btn" onclick="openSyncModal()" title="Sync across devices">🔄</button>
+
+  <script>
+    // Sound effects using Web Audio API
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      switch(type) {
+        case 'complete':
+          oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+          oscillator.frequency.setValueAtTime(1108, audioCtx.currentTime + 0.1);
+          oscillator.type = 'sine';
+          gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+          oscillator.start(audioCtx.currentTime);
+          oscillator.stop(audioCtx.currentTime + 0.3);
+          break;
+
+        case 'uncomplete':
+          oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+          oscillator.frequency.setValueAtTime(200, audioCtx.currentTime + 0.1);
+          oscillator.type = 'sine';
+          gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+          gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+          oscillator.start(audioCtx.currentTime);
+          oscillator.stop(audioCtx.currentTime + 0.2);
+          break;
+
+        case 'levelup':
+          const notes = [523, 659, 784, 1047];
+          notes.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.15);
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime + i * 0.15);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + i * 0.15 + 0.3);
+            osc.start(audioCtx.currentTime + i * 0.15);
+            osc.stop(audioCtx.currentTime + i * 0.15 + 0.3);
+          });
+          break;
+
+        case 'allcomplete':
+          const victory = [784, 988, 1175, 1568];
+          victory.forEach((freq, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.1);
+            osc.type = 'triangle';
+            gain.gain.setValueAtTime(0.25, audioCtx.currentTime + i * 0.1);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + i * 0.1 + 0.4);
+            osc.start(audioCtx.currentTime + i * 0.1);
+            osc.stop(audioCtx.currentTime + i * 0.1 + 0.4);
+          });
+          break;
+      }
+    }
+
+    // Default goals (target: null = daily, otherwise weekly/monthly with count)
+    const DEFAULT_GOALS = [
+      { id: 'sleep', name: 'Sleep 7+ Hours', icon: '😴', xp: 25, target: null },
+      { id: 'gym', name: 'Hit the Gym', icon: '💪', xp: 30, target: 3, frequency: 'week' },
+      { id: 'water', name: 'Drink 8 Glasses', icon: '💧', xp: 15, target: null },
+      { id: 'read', name: 'Read 20 Minutes', icon: '📚', xp: 20, target: null },
+      { id: 'meditate', name: 'Meditate', icon: '🧘', xp: 20, target: 5, frequency: 'week' }
+    ];
+
+    // Default rewards (unlocked at certain levels)
+    const DEFAULT_REWARDS = [
+      { id: 'chess_lesson', name: 'Chess Lesson', icon: '♟️', level: 3 },
+      { id: 'chess_tournament', name: 'Chess Tournament', icon: '🏆', level: 5 },
+      { id: 'nice_dinner', name: 'Nice Dinner Out', icon: '🍽️', level: 10 },
+      { id: 'day_off', name: 'Day Off', icon: '🏖️', level: 15 }
+    ];
+
+    const ICONS = ['🎯', '✨', '🔥', '⭐', '💎', '🚀', '💪', '🧠', '❤️', '🌟', '⚡', '🎮', '🏃', '🥗', '💊', '🛏️', '📱', '🎨', '🎵', '✍️'];
+    const REWARD_ICONS = ['🎁', '🎉', '🎊', '🌟', '💫', '🏅', '🎖️', '👑', '💎', '🎯', '🎮', '🎬', '🎨', '🎸', '🍕', '🍦', '☕', '🧘', '✈️', '🛍️'];
+    const XP_PER_LEVEL = 100;
+
+    let currentCalendarDate = new Date();
+    let selectedDate = new Date().toISOString().split('T')[0];
+
+    // Undo/Redo system
+    const undoStack = [];
+    const redoStack = [];
+    const MAX_UNDO_STACK = 50;
+    let toastTimeout = null;
+
+    function pushUndo(actionName) {
+      const currentState = localStorage.getItem('lifequest');
+      undoStack.push({ state: currentState, action: actionName });
+      if (undoStack.length > MAX_UNDO_STACK) {
+        undoStack.shift();
+      }
+      // Clear redo stack when new action is performed
+      redoStack.length = 0;
+    }
+
+    function undo() {
+      if (undoStack.length === 0) return;
+
+      const currentState = localStorage.getItem('lifequest');
+      const { state: prevState, action } = undoStack.pop();
+
+      redoStack.push({ state: currentState, action });
+      localStorage.setItem('lifequest', prevState);
+
+      showUndoToast(`Undone: ${action}`);
+      render();
+    }
+
+    function redo() {
+      if (redoStack.length === 0) return;
+
+      const currentState = localStorage.getItem('lifequest');
+      const { state: nextState, action } = redoStack.pop();
+
+      undoStack.push({ state: currentState, action });
+      localStorage.setItem('lifequest', nextState);
+
+      showUndoToast(`Redone: ${action}`);
+      render();
+    }
+
+    function showUndoToast(message) {
+      const toast = document.getElementById('undo-toast');
+      const text = document.getElementById('undo-toast-text');
+      text.textContent = message;
+      toast.classList.add('show');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2000);
+    }
+
+    // Keyboard shortcuts for undo/redo
+    document.addEventListener('keydown', function(e) {
+      // Check for Cmd+Z (Mac) or Ctrl+Z (Windows)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      }
+    });
+
+    // Context menu for delete (right-click or long-press)
+    let contextMenuTarget = null;
+    let contextMenuType = null;
+    let longPressTimer = null;
+    const LONG_PRESS_DURATION = 500;
+
+    function showContextMenu(x, y, type, id) {
+      const menu = document.getElementById('context-menu');
+      contextMenuTarget = id;
+      contextMenuType = type;
+
+      // Position menu, keeping it on screen
+      const menuWidth = 140;
+      const menuHeight = 40;
+      const maxX = window.innerWidth - menuWidth - 10;
+      const maxY = window.innerHeight - menuHeight - 10;
+
+      menu.style.left = Math.min(x, maxX) + 'px';
+      menu.style.top = Math.min(y, maxY) + 'px';
+      menu.classList.add('show');
+    }
+
+    function hideContextMenu() {
+      const menu = document.getElementById('context-menu');
+      menu.classList.remove('show');
+      contextMenuTarget = null;
+      contextMenuType = null;
+    }
+
+    // Handle delete from context menu
+    document.getElementById('context-menu-delete').addEventListener('click', function() {
+      if (contextMenuTarget && contextMenuType) {
+        if (contextMenuType === 'goal') {
+          pushUndo('Delete habit');
+          const data = loadData();
+          data.goals = data.goals.filter(g => g.id !== contextMenuTarget);
+          Object.keys(data.days).forEach(day => {
+            delete data.days[day][contextMenuTarget];
+          });
+          saveData(data);
+          playSound('uncomplete');
+          render();
+        } else if (contextMenuType === 'reward') {
+          pushUndo('Delete reward');
+          const data = loadData();
+          data.rewards = data.rewards.filter(r => r.id !== contextMenuTarget);
+          saveData(data);
+          playSound('uncomplete');
+          render();
+        }
+      }
+      hideContextMenu();
+    });
+
+    // Hide context menu when clicking elsewhere
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.context-menu')) {
+        hideContextMenu();
+      }
+    });
+
+    // Hide context menu on scroll
+    document.addEventListener('scroll', hideContextMenu);
+
+    function getToday() {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    function getSelectedDate() {
+      return selectedDate;
+    }
+
+    function setSelectedDate(dateStr) {
+      selectedDate = dateStr;
+      // Update calendar view to show the selected month
+      const [year, month] = dateStr.split('-');
+      currentCalendarDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+      render();
+    }
+
+    function changeSelectedDate(days) {
+      const date = new Date(selectedDate);
+      date.setDate(date.getDate() + days);
+      setSelectedDate(date.toISOString().split('T')[0]);
+    }
+
+    function goToToday() {
+      setSelectedDate(getToday());
+    }
+
+    function formatDisplayDate(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00');
+      const today = getToday();
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+      if (dateStr === today) return 'Today';
+      if (dateStr === yesterdayStr) return 'Yesterday';
+      if (dateStr === tomorrowStr) return 'Tomorrow';
+
+      return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+
+    // JSONBin Cloud Sync
+    const JSONBIN_API_KEY = '$2a$10$P5NA3/wZ6uwKNvZ6mXkcXOHMn9f32rZ144b3p5mRNCgy/sUlKRAsG';
+    let JSONBIN_BIN_ID = localStorage.getItem('lifequest_bin_id') || null;
+    let saveTimeout = null;
+
+    // Sync Modal Functions
+    function openSyncModal() {
+      const modal = document.getElementById('sync-modal');
+      const display = document.getElementById('sync-code-display');
+
+      if (JSONBIN_BIN_ID) {
+        display.innerHTML = `
+          <div class="sync-code-box">
+            <div class="sync-code-label">Your sync code (tap to copy)</div>
+            <div class="sync-code" onclick="copySyncCode()">${JSONBIN_BIN_ID}</div>
+            <div class="sync-code-hint">Copy this code to your other device</div>
+          </div>
+        `;
+      } else {
+        display.innerHTML = `
+          <div class="sync-code-box">
+            <div class="sync-code-label">No sync code yet</div>
+            <div class="sync-code-hint">Make a change to create your sync code</div>
+          </div>
+        `;
+      }
+
+      modal.classList.add('show');
+    }
+
+    function closeSyncModal() {
+      document.getElementById('sync-modal').classList.remove('show');
+    }
+
+    function copySyncCode() {
+      if (JSONBIN_BIN_ID) {
+        navigator.clipboard.writeText(JSONBIN_BIN_ID).then(() => {
+          const display = document.getElementById('sync-code-display');
+          display.innerHTML += '<div class="sync-status">Copied!</div>';
+          setTimeout(() => {
+            const status = display.querySelector('.sync-status');
+            if (status) status.remove();
+          }, 2000);
+        });
+      }
+    }
+
+    async function applySyncCode() {
+      const input = document.getElementById('sync-code-input');
+      const code = input.value.trim();
+      if (!code) return;
+
+      // Save the new bin ID
+      JSONBIN_BIN_ID = code;
+      localStorage.setItem('lifequest_bin_id', code);
+
+      // Load data from cloud
+      const cloudData = await loadFromCloud();
+      if (cloudData) {
+        localStorage.setItem('lifequest', JSON.stringify(cloudData));
+        render();
+        closeSyncModal();
+        showUndoToast('Synced from cloud!');
+      } else {
+        showUndoToast('Invalid sync code');
+      }
+      input.value = '';
+    }
+
+    // Auto-show sync modal on mobile if no bin ID
+    function checkMobileFirstTime() {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile && !JSONBIN_BIN_ID) {
+        setTimeout(() => openSyncModal(), 500);
+      }
+    }
+
+    // Ask for name if not set, and update bin name if needed
+    async function ensureUserName() {
+      let userName = localStorage.getItem('lifequest_user_name');
+      if (!userName) {
+        userName = prompt('Welcome to Life Quest! What\'s your name?') || 'Anonymous';
+        localStorage.setItem('lifequest_user_name', userName);
+
+        // If bin already exists, update its name
+        if (JSONBIN_BIN_ID) {
+          const binName = `lifequest_${userName.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now()}`;
+          try {
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/meta/name`, {
+              method: 'PUT',
+              headers: {
+                'X-Master-Key': JSONBIN_API_KEY,
+                'X-Bin-Name': binName
+              }
+            });
+            const result = await response.json();
+            console.log('Updated bin name to:', binName, result);
+          } catch (err) {
+            console.error('Failed to update bin name:', err);
+          }
+        }
+      }
+      return userName;
+    }
+
+    async function createBin(data) {
+      const userName = await ensureUserName();
+      const binName = `lifequest_${userName.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now()}`;
+
+      try {
+        const response = await fetch('https://api.jsonbin.io/v3/b', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': JSONBIN_API_KEY,
+            'X-Bin-Name': binName
+          },
+          body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.metadata && result.metadata.id) {
+          JSONBIN_BIN_ID = result.metadata.id;
+          localStorage.setItem('lifequest_bin_id', JSONBIN_BIN_ID);
+          console.log('Created new bin:', JSONBIN_BIN_ID, 'name:', binName);
+        }
+      } catch (err) {
+        console.error('Failed to create bin:', err);
+      }
+    }
+
+    async function syncToCloud(data) {
+      if (!JSONBIN_BIN_ID) {
+        await createBin(data);
+        return;
+      }
+      try {
+        await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': JSONBIN_API_KEY
+          },
+          body: JSON.stringify(data)
+        });
+        console.log('Synced to cloud');
+      } catch (err) {
+        console.error('Failed to sync to cloud:', err);
+      }
+    }
+
+    async function loadFromCloud() {
+      if (!JSONBIN_BIN_ID) return null;
+      try {
+        const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+          headers: { 'X-Master-Key': JSONBIN_API_KEY }
+        });
+
+        // If bin was deleted or doesn't exist, clear and recreate
+        if (response.status === 404) {
+          console.log('Bin not found (deleted?), creating new one...');
+          localStorage.removeItem('lifequest_bin_id');
+          localStorage.removeItem('lifequest_user_name');
+          JSONBIN_BIN_ID = null;
+          await createBin(loadData());
+          return null;
+        }
+
+        const result = await response.json();
+        if (result.record) {
+          console.log('Loaded from cloud');
+          return result.record;
+        }
+      } catch (err) {
+        console.error('Failed to load from cloud:', err);
+      }
+      return null;
+    }
+
+    function loadData() {
+      const saved = localStorage.getItem('lifequest');
+      if (saved) {
+        const data = JSON.parse(saved);
+        if (!data.goals) {
+          data.goals = [...DEFAULT_GOALS];
+        }
+        if (!data.rewards) {
+          data.rewards = [...DEFAULT_REWARDS];
+        }
+        return data;
+      }
+      return {
+        xp: 0,
+        level: 1,
+        streak: 0,
+        totalComplete: 0,
+        days: {},
+        goals: [...DEFAULT_GOALS],
+        rewards: [...DEFAULT_REWARDS]
+      };
+    }
+
+    function saveData(data) {
+      localStorage.setItem('lifequest', JSON.stringify(data));
+
+      // Sync to cloud immediately (no debounce - ensures data is saved)
+      syncToCloud(data);
+    }
+
+    // Initial cloud sync on load
+    async function initCloudSync() {
+      if (!JSONBIN_BIN_ID) {
+        // First time: create bin with current data
+        console.log('No bin ID, creating new bin...');
+        await createBin(loadData());
+        return;
+      }
+
+      // Load from cloud and update local
+      console.log('Loading from cloud, bin:', JSONBIN_BIN_ID);
+      const cloudData = await loadFromCloud();
+      if (cloudData) {
+        localStorage.setItem('lifequest', JSON.stringify(cloudData));
+        console.log('Updated localStorage from cloud');
+        render();
+      }
+    }
+
+    function getGoals() {
+      return loadData().goals;
+    }
+
+    // Get start of week (Sunday) for a given date
+    function getWeekStart(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00');
+      const day = date.getDay();
+      date.setDate(date.getDate() - day);
+      return date.toISOString().split('T')[0];
+    }
+
+    // Get start of month for a given date
+    function getMonthStart(dateStr) {
+      const [year, month] = dateStr.split('-');
+      return `${year}-${month}-01`;
+    }
+
+    // Count how many times a goal was completed in a period
+    function getGoalProgress(goalId, frequency) {
+      const data = loadData();
+      const today = getSelectedDate();
+      let startDate, endDate;
+
+      if (frequency === 'week') {
+        startDate = getWeekStart(today);
+        const end = new Date(startDate + 'T00:00:00');
+        end.setDate(end.getDate() + 6);
+        endDate = end.toISOString().split('T')[0];
+      } else if (frequency === 'month') {
+        startDate = getMonthStart(today);
+        const [year, month] = today.split('-');
+        const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+        endDate = `${year}-${month}-${String(lastDay).padStart(2, '0')}`;
+      }
+
+      let count = 0;
+      let current = new Date(startDate + 'T00:00:00');
+      const end = new Date(endDate + 'T00:00:00');
+
+      while (current <= end) {
+        const dateStr = current.toISOString().split('T')[0];
+        if (data.days[dateStr] && data.days[dateStr][goalId]) {
+          count++;
+        }
+        current.setDate(current.getDate() + 1);
+      }
+
+      return count;
+    }
+
+    function getSelectedDayGoals() {
+      const data = loadData();
+      const date = getSelectedDate();
+      if (!data.days[date]) {
+        data.days[date] = {};
+        data.goals.forEach(g => data.days[date][g.id] = false);
+        saveData(data);
+      }
+      return data.days[date];
+    }
+
+    // Helper to create a slug from text (for readable IDs)
+    function slugify(text) {
+      return text.toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_|_$/g, '')
+        .substring(0, 20);
+    }
+
+    function addGoal() {
+      const input = document.getElementById('new-goal-input');
+      let name = input.value.trim();
+      if (!name) return;
+
+      pushUndo('Add habit');
+      const data = loadData();
+      const slug = slugify(name);
+      const id = slug + '_' + Date.now();
+      const icon = ICONS[Math.floor(Math.random() * ICONS.length)];
+
+      // Parse target syntax: "Goal name 3x/week" or "Goal name 12x/month"
+      let target = null;
+      let frequency = null;
+      const weekMatch = name.match(/\s+(\d+)x?\s*\/\s*w(eek)?$/i);
+      const monthMatch = name.match(/\s+(\d+)x?\s*\/\s*m(onth)?$/i);
+
+      if (weekMatch) {
+        target = parseInt(weekMatch[1]);
+        frequency = 'week';
+        name = name.replace(weekMatch[0], '').trim();
+      } else if (monthMatch) {
+        target = parseInt(monthMatch[1]);
+        frequency = 'month';
+        name = name.replace(monthMatch[0], '').trim();
+      }
+
+      data.goals.push({
+        id,
+        name,
+        icon,
+        xp: 20,
+        target,
+        frequency
+      });
+
+      // Add to selected day's tracking
+      const date = getSelectedDate();
+      if (data.days[date]) {
+        data.days[date][id] = false;
+      }
+
+      saveData(data);
+      input.value = '';
+      playSound('complete');
+      render();
+    }
+
+    function addReward() {
+      const input = document.getElementById('new-reward-input');
+      let text = input.value.trim();
+      if (!text) return;
+
+      pushUndo('Add reward');
+      const data = loadData();
+      const slug = slugify(text);
+      const id = slug + '_' + Date.now();
+      const icon = REWARD_ICONS[Math.floor(Math.random() * REWARD_ICONS.length)];
+
+      // Parse level syntax: "Reward name @5" or "Reward name @level 5"
+      let level = 5; // default level
+      const levelMatch = text.match(/@\s*(?:level\s*)?(\d+)$/i);
+      if (levelMatch) {
+        level = parseInt(levelMatch[1]);
+        text = text.replace(levelMatch[0], '').trim();
+      }
+
+      data.rewards.push({
+        id,
+        name: text,
+        icon,
+        level
+      });
+
+      saveData(data);
+      input.value = '';
+      playSound('complete');
+      render();
+    }
+
+    // Big Monthly Goal functions
+    function getCurrentMonth() {
+      const dateStr = getSelectedDate();
+      const [year, month] = dateStr.split('-');
+      return `${year}-${month}`;
+    }
+
+    function getMonthName(monthStr) {
+      const [year, month] = monthStr.split('-');
+      const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+      return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
+
+    function setBigGoal() {
+      const input = document.getElementById('big-goal-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      pushUndo('Set monthly goal');
+      const data = loadData();
+      const month = getCurrentMonth();
+
+      if (!data.bigGoals) data.bigGoals = {};
+      data.bigGoals[month] = { text, completed: false };
+
+      saveData(data);
+      input.value = '';
+      playSound('complete');
+      render();
+    }
+
+    function toggleBigGoal() {
+      pushUndo('Toggle monthly goal');
+      const data = loadData();
+      const month = getCurrentMonth();
+
+      if (data.bigGoals && data.bigGoals[month]) {
+        data.bigGoals[month].completed = !data.bigGoals[month].completed;
+        if (data.bigGoals[month].completed) {
+          playSound('allcomplete');
+          showCelebration('🎉');
+          data.xp += 100; // Bonus XP for completing big goal
+          while (data.xp >= data.level * XP_PER_LEVEL) {
+            data.xp -= data.level * XP_PER_LEVEL;
+            data.level++;
+            playSound('levelup');
+          }
+        } else {
+          playSound('uncomplete');
+          data.xp = Math.max(0, data.xp - 100);
+        }
+        saveData(data);
+        render();
+      }
+    }
+
+    function clearBigGoal() {
+      pushUndo('Clear monthly goal');
+      const data = loadData();
+      const month = getCurrentMonth();
+
+      if (data.bigGoals && data.bigGoals[month]) {
+        delete data.bigGoals[month];
+        saveData(data);
+        playSound('uncomplete');
+        render();
+      }
+    }
+
+    function toggleGoal(goalId) {
+      pushUndo('Toggle habit');
+      const data = loadData();
+      const date = getSelectedDate();
+      const goal = data.goals.find(g => g.id === goalId);
+
+      if (!goal) return;
+
+      // Initialize day if needed (using same data object)
+      if (!data.days[date]) {
+        data.days[date] = {};
+        data.goals.forEach(g => data.days[date][g.id] = false);
+      }
+
+      const dayGoals = data.days[date];
+
+      if (!dayGoals[goalId]) {
+        dayGoals[goalId] = true;
+        data.xp += goal.xp;
+
+        let leveledUp = false;
+        while (data.xp >= data.level * XP_PER_LEVEL) {
+          data.xp -= data.level * XP_PER_LEVEL;
+          data.level++;
+          leveledUp = true;
+        }
+
+        if (leveledUp) {
+          playSound('levelup');
+          showCelebration('🎊');
+        } else {
+          playSound('complete');
+          showCelebration('✨');
+        }
+      } else {
+        dayGoals[goalId] = false;
+        data.xp = Math.max(0, data.xp - goal.xp);
+        playSound('uncomplete');
+      }
+
+      const allComplete = data.goals.every(g => dayGoals[g.id]);
+      if (allComplete && data.goals.length > 0) {
+        setTimeout(() => {
+          playSound('allcomplete');
+          showCelebration('🏆');
+        }, 300);
+      }
+
+      updateStreak(data);
+      saveData(data);
+      render();
+    }
+
+    function updateStreak(data) {
+      let streak = 0;
+      let date = new Date();
+
+      while (true) {
+        const dateStr = date.toISOString().split('T')[0];
+        const dayData = data.days[dateStr];
+
+        if (dayData && data.goals.length > 0 && data.goals.every(g => dayData[g.id])) {
+          streak++;
+          date.setDate(date.getDate() - 1);
+        } else if (dateStr === getToday()) {
+          date.setDate(date.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+
+      data.streak = streak;
+      data.totalComplete = Object.values(data.days).filter(d =>
+        data.goals.length > 0 && data.goals.every(g => d[g.id])
+      ).length;
+    }
+
+    function showCelebration(emoji) {
+      const el = document.getElementById('celebration');
+      el.textContent = emoji;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 600);
+    }
+
+    function renderGoals() {
+      const container = document.getElementById('goals');
+      const data = loadData();
+      const dayGoals = getSelectedDayGoals();
+
+      // Separate daily habits from weekly/monthly goals
+      const dailyHabits = data.goals.filter(g => !g.target || !g.frequency);
+      const weeklyMonthlyGoals = data.goals.filter(g => g.target && g.frequency);
+
+      function renderGoalCard(goal) {
+        let progressHtml = '';
+        if (goal.target && goal.frequency) {
+          const current = getGoalProgress(goal.id, goal.frequency);
+          const percent = Math.min(100, (current / goal.target) * 100);
+          const isComplete = current >= goal.target;
+          const freqLabel = goal.frequency === 'week' ? 'this week' : 'this month';
+          progressHtml = `
+            <div class="goal-progress">
+              <span class="progress-bar"><span class="progress-fill ${isComplete ? 'complete' : ''}" style="width: ${percent}%"></span></span>
+              <span class="progress-text ${isComplete ? 'complete' : ''}">${current}/${goal.target} ${freqLabel}</span>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="goal-card ${dayGoals[goal.id] ? 'completed' : ''}" data-type="goal" data-id="${goal.id}">
+            <div class="goal-icon">${goal.icon}</div>
+            <div class="goal-info">
+              <div class="goal-name">${goal.name}</div>
+              <div class="goal-streak">+${goal.xp} XP</div>
+              ${progressHtml}
+            </div>
+            <div class="goal-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+          </div>
+        `;
+      }
+
+      let html = '';
+
+      // Daily Habits section
+      if (dailyHabits.length > 0) {
+        html += '<div class="goals-section-label">Daily Habits</div>';
+        html += dailyHabits.map(renderGoalCard).join('');
+      }
+
+      // Weekly/Monthly Goals section
+      if (weeklyMonthlyGoals.length > 0) {
+        html += '<div class="goals-section-label">Weekly & Monthly Goals</div>';
+        html += weeklyMonthlyGoals.map(renderGoalCard).join('');
+      }
+
+      container.innerHTML = html;
+    }
+
+    function renderSelectedDate() {
+      const container = document.getElementById('selected-date');
+      const date = getSelectedDate();
+      const isToday = date === getToday();
+      container.className = 'selected-date' + (date < getToday() ? ' is-past' : '');
+      container.innerHTML = `
+        <button class="date-nav" onclick="changeSelectedDate(-1)">&#8249;</button>
+        <span class="date-text">${formatDisplayDate(date)}</span>
+        <button class="date-nav" onclick="changeSelectedDate(1)">&#8250;</button>
+        ${!isToday ? '<button class="today-btn" onclick="goToToday()">Today</button>' : ''}
+      `;
+    }
+
+    function renderWeekView() {
+      const container = document.getElementById('week-view');
+      const data = loadData();
+      const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+      const today = new Date();
+
+      let html = '';
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayData = data.days[dateStr];
+
+        let status = '';
+        if (dayData && data.goals.length > 0) {
+          const completed = data.goals.filter(g => dayData[g.id]).length;
+          if (completed === data.goals.length) status = 'complete';
+          else if (completed > 0) status = 'partial';
+        }
+        if (i === 0) status += ' today';
+
+        html += `
+          <div class="day">
+            <div class="day-name">${days[date.getDay()]}</div>
+            <div class="day-dot ${status}"></div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function renderCalendar() {
+      const data = loadData();
+      const year = currentCalendarDate.getFullYear();
+      const month = currentCalendarDate.getMonth();
+
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+
+      document.getElementById('calendar-title').textContent = `${monthNames[month]} ${year}`;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+
+      let html = '';
+
+      // Empty cells for days before month starts
+      for (let i = 0; i < firstDay; i++) {
+        html += '<div class="calendar-day"></div>';
+      }
+
+      // Days of the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayData = data.days[dateStr];
+
+        let classes = ['calendar-day', 'current-month'];
+
+        if (dateStr === todayStr) {
+          classes.push('today');
+        }
+
+        if (dayData && data.goals.length > 0) {
+          const completed = data.goals.filter(g => dayData[g.id]).length;
+          if (completed === data.goals.length) {
+            classes.push('complete');
+          } else if (completed > 0) {
+            classes.push('partial');
+          }
+        }
+
+        const isSelected = dateStr === selectedDate;
+        if (isSelected) {
+          classes.push('selected');
+        }
+
+        html += `<div class="${classes.join(' ')}" onclick="setSelectedDate('${dateStr}')">${day}</div>`;
+      }
+
+      document.getElementById('calendar-days').innerHTML = html;
+    }
+
+    function changeMonth(delta) {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function renderStats() {
+      const data = loadData();
+      const xpNeeded = data.level * XP_PER_LEVEL;
+      const xpPercent = (data.xp / xpNeeded) * 100;
+
+      document.getElementById('level').textContent = data.level;
+      document.getElementById('xp').textContent = data.xp;
+      document.getElementById('xp-needed').textContent = xpNeeded;
+      document.getElementById('xp-fill').style.width = xpPercent + '%';
+      document.getElementById('current-streak').textContent = data.streak;
+      document.getElementById('total-complete').textContent = data.totalComplete;
+    }
+
+    function renderRewards() {
+      const container = document.getElementById('rewards-list');
+      const data = loadData();
+
+      // Sort rewards by level, unlocked first
+      const sortedRewards = [...data.rewards].sort((a, b) => {
+        const aUnlocked = data.level >= a.level;
+        const bUnlocked = data.level >= b.level;
+        if (aUnlocked !== bUnlocked) return bUnlocked - aUnlocked;
+        return a.level - b.level;
+      });
+
+      container.innerHTML = sortedRewards.map(reward => {
+        const isUnlocked = data.level >= reward.level;
+        return `
+          <div class="reward-item ${isUnlocked ? 'unlocked' : 'locked'}" data-type="reward" data-id="${reward.id}">
+            <span class="reward-icon">${reward.icon}</span>
+            <div class="reward-info">
+              <div class="reward-name">${reward.name}</div>
+              <div class="reward-level">Unlocks at Level ${reward.level}</div>
+            </div>
+            <span class="reward-status ${isUnlocked ? 'unlocked' : 'locked'}">${isUnlocked ? 'Unlocked!' : 'Locked'}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderBigGoal() {
+      const container = document.getElementById('big-goal-content');
+      const monthLabel = document.getElementById('big-goal-month');
+      const data = loadData();
+      const month = getCurrentMonth();
+      const bigGoal = data.bigGoals ? data.bigGoals[month] : null;
+
+      monthLabel.textContent = getMonthName(month);
+
+      if (bigGoal) {
+        container.innerHTML = `
+          <div class="big-goal-display">
+            <div class="big-goal-text ${bigGoal.completed ? 'completed' : ''}" onclick="toggleBigGoal()">${bigGoal.text}</div>
+            <div class="big-goal-actions">
+              <button class="big-goal-btn complete" onclick="toggleBigGoal()">${bigGoal.completed ? 'Mark Incomplete' : 'Mark Complete'}</button>
+              <button class="big-goal-btn" onclick="clearBigGoal()">Clear</button>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="big-goal-display">
+            <div class="big-goal-empty">Set your big focus for this month</div>
+          </div>
+          <div class="big-goal-form">
+            <input type="text" id="big-goal-input" placeholder="e.g. Get to $600k this month" maxlength="60">
+            <button onclick="setBigGoal()">Set Goal</button>
+          </div>
+        `;
+        // Add enter key listener for the dynamically created input
+        setTimeout(() => {
+          const input = document.getElementById('big-goal-input');
+          if (input) {
+            input.addEventListener('keypress', function(e) {
+              if (e.key === 'Enter') setBigGoal();
+            });
+          }
+        }, 0);
+      }
+    }
+
+    function render() {
+      renderSelectedDate();
+      renderBigGoal();
+      renderGoals();
+      renderWeekView();
+      renderCalendar();
+      renderRewards();
+      renderStats();
+    }
+
+    function resetDay() {
+      pushUndo('Reset day');
+      const data = loadData();
+      const date = getSelectedDate();
+      const dayGoals = data.days[date] || {};
+
+      data.goals.forEach(g => {
+        if (dayGoals[g.id]) {
+          data.xp = Math.max(0, data.xp - g.xp);
+        }
+      });
+
+      data.days[date] = {};
+      data.goals.forEach(g => data.days[date][g.id] = false);
+
+      updateStreak(data);
+      saveData(data);
+      render();
+    }
+
+    // Enter key to add goal
+    document.getElementById('new-goal-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        addGoal();
+      }
+    });
+
+    // Enter key to add reward
+    document.getElementById('new-reward-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        addReward();
+      }
+    });
+
+    // Right-click handler for goals and rewards
+    document.addEventListener('contextmenu', function(e) {
+      const goalCard = e.target.closest('.goal-card');
+      const rewardItem = e.target.closest('.reward-item');
+
+      if (goalCard) {
+        e.preventDefault();
+        showContextMenu(e.clientX, e.clientY, 'goal', goalCard.dataset.id);
+      } else if (rewardItem) {
+        e.preventDefault();
+        showContextMenu(e.clientX, e.clientY, 'reward', rewardItem.dataset.id);
+      }
+    });
+
+    // Long-press handler for goals and rewards (mobile + desktop)
+    document.addEventListener('mousedown', function(e) {
+      const goalCard = e.target.closest('.goal-card');
+      const rewardItem = e.target.closest('.reward-item');
+
+      if (goalCard || rewardItem) {
+        longPressTimer = setTimeout(() => {
+          if (goalCard) {
+            showContextMenu(e.clientX, e.clientY, 'goal', goalCard.dataset.id);
+          } else if (rewardItem) {
+            showContextMenu(e.clientX, e.clientY, 'reward', rewardItem.dataset.id);
+          }
+        }, LONG_PRESS_DURATION);
+      }
+    });
+
+    document.addEventListener('mouseup', function() {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    });
+
+    document.addEventListener('mouseleave', function() {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    });
+
+    // Touch events for mobile long-press
+    document.addEventListener('touchstart', function(e) {
+      const goalCard = e.target.closest('.goal-card');
+      const rewardItem = e.target.closest('.reward-item');
+
+      if (goalCard || rewardItem) {
+        const touch = e.touches[0];
+        longPressTimer = setTimeout(() => {
+          if (goalCard) {
+            showContextMenu(touch.clientX, touch.clientY, 'goal', goalCard.dataset.id);
+          } else if (rewardItem) {
+            showContextMenu(touch.clientX, touch.clientY, 'reward', rewardItem.dataset.id);
+          }
+        }, LONG_PRESS_DURATION);
+      }
+    });
+
+    document.addEventListener('touchend', function() {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    });
+
+    document.addEventListener('touchmove', function() {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    });
+
+    // Click handler for goal cards (toggle) - NOT rewards
+    document.addEventListener('click', function(e) {
+      // Ignore if context menu is showing
+      if (document.getElementById('context-menu').classList.contains('show')) {
+        return;
+      }
+
+      const goalCard = e.target.closest('.goal-card');
+      const rewardItem = e.target.closest('.reward-item');
+
+      // Only toggle goals, not rewards (rewards don't do anything on click)
+      if (goalCard && !rewardItem) {
+        toggleGoal(goalCard.dataset.id);
+      }
+    });
+
+    // Initialize
+    render();
+    initCloudSync(); // Sync with JSONBin
+    ensureUserName(); // Ask for name if not set (also updates bin name for existing users)
+    checkMobileFirstTime(); // Show sync modal on mobile if needed
+  </script>
+</body>
+</html>
